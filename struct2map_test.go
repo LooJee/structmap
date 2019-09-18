@@ -1,0 +1,81 @@
+package struct2map
+
+import "testing"
+
+type Foo struct {
+	X string `struct2map:"key:x"`
+	Y string `struct2map:"key:y"`
+}
+
+type Bar struct {
+	X string
+	Y string
+}
+
+type Another struct {
+	X string `struct2map:""`
+	Y string
+}
+
+func TestDecode(t *testing.T) {
+	st := Foo{
+		X: "hello",
+		Y: "world",
+	}
+
+	mp, err := Decode(&st)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if mp["x"] == "hello" && mp["y"] == "world" {
+		t.Log(mp)
+	} else {
+		t.Fatal(mp)
+	}
+}
+
+func TestDecode2(t *testing.T) {
+	st := Foo{
+		X: "hello",
+		Y: "world",
+	}
+
+	_, err := Decode(st)
+	if err != ErrNotPtr {
+		t.Fail()
+	}
+}
+
+func TestDecode3(t *testing.T) {
+	i := 1
+
+	_, err := Decode(&i)
+	if err != ErrNotValidElem {
+		t.Fail()
+	}
+}
+
+func TestDecode4(t *testing.T) {
+	st := Bar{
+		X: "hello",
+		Y: "world",
+	}
+
+	_, err := Decode(&st)
+	if err != ErrNeedTag {
+		t.Fail()
+	}
+}
+
+func TestDecode5(t *testing.T) {
+	st := Another{
+		X: "hello",
+		Y: "world",
+	}
+
+	_, err := Decode(&st)
+	if err != ErrNotValidTag {
+		t.Fail()
+	}
+}
