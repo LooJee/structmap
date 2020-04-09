@@ -17,6 +17,11 @@ type Another struct {
 	Y string
 }
 
+type IgnoreExample struct {
+	X string `struct2map:"-"`
+	Y string `struct2map:"key:y"`
+}
+
 func TestDecode(t *testing.T) {
 	st := Foo{
 		X: "hello",
@@ -77,5 +82,20 @@ func TestDecode5(t *testing.T) {
 	_, err := Decode(&st)
 	if err != ErrNotValidTag {
 		t.Fail()
+	}
+}
+
+func TestDecode6(t *testing.T) {
+	st := IgnoreExample{
+		X: "hello",
+		Y: "world",
+	}
+
+	dict, err := Decode(&st)
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	} else {
+		t.Log(dict)
 	}
 }

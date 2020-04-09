@@ -15,8 +15,7 @@ var (
 	ErrNeedTag      = errors.New("need struct2map tag")
 	TagName         = "struct2map"
 	TagKey          = "key"
-	TagIgnore       = "ignore" //"true" or "false"
-	IgnoreTrue      = "true"
+	TagIgnore       = "-"
 )
 
 func getKey(tagStr string) (key string, err error) {
@@ -31,7 +30,7 @@ func getKey(tagStr string) (key string, err error) {
 				key = kv[1]
 				err = nil
 			}
-		} else if kv[0] == TagIgnore && kv[1] == IgnoreTrue {
+		} else if kv[0] == TagIgnore {
 			err = ErrIgnore
 		}
 	}
