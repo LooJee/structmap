@@ -1,3 +1,3 @@
-module github.com/loojee/struct2map
+module github.com/loojee/structmap
 
 go 1.14
