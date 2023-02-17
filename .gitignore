@@ -1,5 +1,2 @@
-
-.idea/misc.xml
-.idea/modules.xml
-.idea/struct2map.iml
-.idea/vcs.xml
+.idea
+.vscode
