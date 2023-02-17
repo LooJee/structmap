@@ -1,4 +1,4 @@
-package struct2map
+package structmap
 
 import "errors"
 

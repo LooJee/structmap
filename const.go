@@ -1,4 +1,4 @@
-package struct2map
+package structmap
 
 const (
 	TagName   = "struct2map"
