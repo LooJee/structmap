@@ -1,25 +1,19 @@
 package structmap
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 type Foo struct {
-	X string `struct2map:"key:x"`
-	Y string `struct2map:"key:y"`
+	X string `stm:"x"`
+	Y string `stm:"y"`
 }
 
 type Bar struct {
 	X string
 	Y string
-}
-
-type Another struct {
-	X string `struct2map:""`
-	Y string
-}
-
-type IgnoreExample struct {
-	X string `struct2map:"-"`
-	Y string `struct2map:"key:y"`
 }
 
 func TestDecode(t *testing.T) {
@@ -74,6 +68,10 @@ func TestDecode4(t *testing.T) {
 }
 
 func TestDecode5(t *testing.T) {
+	type Another struct {
+		X string `stm:""`
+		Y string
+	}
 	st := Another{
 		X: "hello",
 		Y: "world",
@@ -86,6 +84,11 @@ func TestDecode5(t *testing.T) {
 }
 
 func TestDecode6(t *testing.T) {
+	type IgnoreExample struct {
+		X string `stm:"-"`
+		Y string `stm:"y"`
+	}
+
 	st := IgnoreExample{
 		X: "hello",
 		Y: "world",
@@ -93,9 +96,16 @@ func TestDecode6(t *testing.T) {
 
 	dict, err := Decode(&st)
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		t.Fatal(err)
+	}
+
+	if _, ok := dict["x"]; ok {
+		t.Fatal("x should be ignored")
+	}
+
+	if y, ok := dict["y"]; !ok {
+		t.Fatal("y should be visible")
 	} else {
-		t.Log(dict)
+		assert.Equal(t, "world", y)
 	}
 }

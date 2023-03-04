@@ -1,2 +1,2 @@
-# struct2map
+# structmap
 a golang library to convert struct to map

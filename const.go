@@ -1,7 +1,6 @@
 package structmap
 
 const (
-	TagName   = "struct2map"
-	TagKey    = "key"
+	TagName   = "stm"
 	TagIgnore = "-"
 )

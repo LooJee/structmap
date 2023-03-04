@@ -8,17 +8,10 @@ import (
 func getKey(tagStr string) (key string, err error) {
 	err = ErrNotValidTag
 	for _, tag := range strings.Split(tagStr, ";") {
-		kv := strings.Split(tag, ":")
-
-		if kv[0] == TagKey {
-			if kv[1] == "" {
-				err = ErrNotValidKey
-			} else {
-				key = kv[1]
-				err = nil
-			}
-		} else if kv[0] == TagIgnore {
+		if tag == TagIgnore {
 			err = ErrIgnore
+		} else {
+			return tag, nil
 		}
 	}
 
