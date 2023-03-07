@@ -129,7 +129,6 @@ func TestComplextDecode(t *testing.T) {
 		E: new(float32),
 		F: new(string),
 		G: true,
-		H: new(bool),
 		I: []Foo{
 			{X: "X", Y: "Y"},
 			{X: "x", Y: "y"},
@@ -139,7 +138,6 @@ func TestComplextDecode(t *testing.T) {
 	*v.D = 1
 	*v.E = 1.1
 	*v.F = "world"
-	*v.H = false
 
 	dict, err := StructToMap(v)
 	if err != nil {
@@ -152,10 +150,13 @@ func TestComplextDecode(t *testing.T) {
 func TestMapToStruct(t *testing.T) {
 	var foo complexType
 
+	a := 1
 	m := map[string]interface{}{
 		"A": "123",
 		"B": 234,
 		"C": 1.1,
+		"D": &a,
+		"G": true,
 		"I": []Foo{
 			{X: "X", Y: "Y"},
 			{X: "x", Y: "y"},

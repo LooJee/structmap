@@ -38,9 +38,18 @@ func StructToMap(st interface{}) (map[string]interface{}, error) {
 			continue
 		}
 
-		//TODO maybe should check pointer
+		if val.Kind() == reflect.Ptr {
+			//if value is a pointer, then clone it
+			if val.IsNil() {
+				continue
+			}
 
-		m[tagName] = val.Interface()
+			v := reflect.New(val.Type().Elem())
+			v.Elem().Set(val.Elem())
+			m[tagName] = v.Interface()
+		} else {
+			m[tagName] = val.Interface()
+		}
 	}
 
 	return m, nil
@@ -57,7 +66,6 @@ func MapToStruct(m map[string]interface{}, st interface{}) error {
 	}
 
 	stVal := reflect.ValueOf(st).Elem()
-	println(stVal.NumField())
 	for i := 0; i < stType.NumField(); i++ {
 		field := stType.Field(i)
 		fieldVal := stVal.FieldByName(field.Name)
@@ -76,16 +84,20 @@ func MapToStruct(m map[string]interface{}, st interface{}) error {
 		}
 
 		mvType := reflect.TypeOf(mv)
+		mvValue := reflect.ValueOf(mv)
 
-		if mvType.Kind() == fieldVal.Kind() {
-			fieldVal.Set(reflect.ValueOf(mv))
+		if field.Type.Kind() == reflect.Ptr {
+			if fieldVal.IsNil() {
+				fieldVal.Set(reflect.New(field.Type.Elem()))
+			}
+			fieldVal.Elem().Set(mvValue.Elem())
+		} else if mvType.AssignableTo(fieldVal.Type()) {
+			fieldVal.Set(mvValue)
 		} else if mvType.ConvertibleTo(field.Type) {
-			fieldVal.Set(reflect.ValueOf(mv).Convert(field.Type))
+			fieldVal.Set(mvValue.Convert(field.Type))
 		} else {
 			return &ErrTypeNotMatch{field.Name, fieldVal.Kind().String(), mvType.Kind().String()}
 		}
-
-		println(reflect.ValueOf(mv).Kind().String())
 	}
 
 	return nil
