@@ -1,74 +1,92 @@
-package struct2map
+package structmap
 
 import (
-	"errors"
 	"reflect"
-	"strings"
 )
 
-var (
-	ErrNotPtr       = errors.New("need a pointer")
-	ErrNotValidElem = errors.New("pointer not point to struct")
-	ErrNotValidTag  = errors.New("not valid tag")
-	ErrNotValidKey  = errors.New("not valid key")
-	ErrIgnore       = errors.New("ignore key")
-	ErrNeedTag      = errors.New("need struct2map tag")
-	TagName         = "struct2map"
-	TagKey          = "key"
-	TagIgnore       = "-"
-)
+func getFieldName(stField reflect.StructField) string {
+	tagName, _ := stField.Tag.Lookup(TagName)
 
-func getKey(tagStr string) (key string, err error) {
-	err = ErrNotValidTag
-	for _, tag := range strings.Split(tagStr, ";") {
-		kv := strings.Split(tag, ":")
-
-		if kv[0] == TagKey {
-			if kv[1] == "" {
-				err = ErrNotValidKey
-			} else {
-				key = kv[1]
-				err = nil
-			}
-		} else if kv[0] == TagIgnore {
-			err = ErrIgnore
-		}
+	if len(tagName) == 0 {
+		tagName = stField.Name
 	}
 
-	return key, err
+	return tagName
 }
 
-func Decode(st interface{}) (map[string]interface{}, error) {
+func StructToMap(st interface{}) (map[string]interface{}, error) {
 	stType := reflect.TypeOf(st)
-	if stType.Kind() != reflect.Ptr {
-		return nil, ErrNotPtr
+	if stType.Kind() == reflect.Ptr {
+		stType = stType.Elem()
 	}
 
-	eleType := stType.Elem()
-	if eleType.Kind() != reflect.Struct {
-		return nil, ErrNotValidElem
+	if stType.Kind() != reflect.Struct {
+		return nil, ErrNeedStruct
 	}
 
 	stVal := reflect.Indirect(reflect.ValueOf(st))
 	m := make(map[string]interface{})
 
-	for i := 0; i < eleType.NumField(); i++ {
-		tagStr, ok := eleType.Field(i).Tag.Lookup(TagName)
-		if !ok {
-			return nil, ErrNeedTag
-		}
-
-		key, err := getKey(tagStr)
-		if err == ErrNotValidKey || err == ErrNotValidTag {
-			return nil, err
-		}
-
-		if err == ErrIgnore {
+	for i := 0; i < stType.NumField(); i++ {
+		tagName := getFieldName(stType.Field(i))
+		if tagName == TagIgnore {
 			continue
 		}
 
-		m[key] = stVal.Field(i).Interface()
+		val := stVal.Field(i)
+		if !val.CanInterface() {
+			continue
+		}
+
+		//TODO maybe should check pointer
+
+		m[tagName] = val.Interface()
 	}
 
 	return m, nil
+}
+
+func MapToStruct(m map[string]interface{}, st interface{}) error {
+	if reflect.TypeOf(st).Kind() != reflect.Ptr {
+		return ErrNotPtr
+	}
+
+	stType := reflect.TypeOf(st).Elem()
+	if stType.Kind() != reflect.Struct {
+		return ErrNeedStruct
+	}
+
+	stVal := reflect.ValueOf(st).Elem()
+	println(stVal.NumField())
+	for i := 0; i < stType.NumField(); i++ {
+		field := stType.Field(i)
+		fieldVal := stVal.FieldByName(field.Name)
+		if !fieldVal.CanSet() {
+			continue
+		}
+
+		tagName := getFieldName(field)
+		if tagName == TagIgnore {
+			continue
+		}
+
+		mv, ok := m[tagName]
+		if !ok {
+			continue
+		}
+
+		mvType := reflect.TypeOf(mv)
+
+		if mvType.Kind() == fieldVal.Kind() {
+			fieldVal.Set(reflect.ValueOf(mv))
+		} else if mvType.ConvertibleTo(field.Type) {
+			fieldVal.Set(reflect.ValueOf(mv).Convert(field.Type))
+		} else {
+			return &ErrTypeNotMatch{field.Name, fieldVal.Kind().String(), mvType.Kind().String()}
+		}
+
+		println(reflect.ValueOf(mv).Kind().String())
+	}
+
+	return nil
 }
