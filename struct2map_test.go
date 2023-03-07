@@ -14,6 +14,7 @@ type Foo struct {
 type Bar struct {
 	X string
 	Y string
+	z string
 }
 
 func TestDecode(t *testing.T) {
@@ -40,10 +41,11 @@ func TestDecode2(t *testing.T) {
 		Y: "world",
 	}
 
-	_, err := Decode(st)
-	if err != ErrNotPtr {
-		t.Fail()
+	m, err := Decode(st)
+	if err != nil {
+		t.Fatal(err)
 	}
+	t.Log(m)
 }
 
 func TestDecode3(t *testing.T) {
@@ -59,12 +61,15 @@ func TestDecode4(t *testing.T) {
 	st := Bar{
 		X: "hello",
 		Y: "world",
+		z: "zzz",
 	}
 
-	_, err := Decode(&st)
-	if err != ErrNeedTag {
-		t.Fail()
+	m, err := Decode(&st)
+	if err != nil {
+		t.Fatal(err)
 	}
+
+	t.Log(m)
 }
 
 func TestDecode5(t *testing.T) {
@@ -107,5 +112,14 @@ func TestDecode6(t *testing.T) {
 		t.Fatal("y should be visible")
 	} else {
 		assert.Equal(t, "world", y)
+	}
+}
+
+func TestDecode7(t *testing.T) {
+	sli := []string{"123", "234", "345"}
+
+	_, err := Decode(sli)
+	if err != ErrNotValidElem {
+		t.Fatalf("want error : %v, got : %v", ErrNotValidElem, err)
 	}
 }
