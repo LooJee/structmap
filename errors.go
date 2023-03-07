@@ -1,12 +1,21 @@
 package structmap
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var (
-	ErrNotPtr       = errors.New("need a pointer")
-	ErrNotValidElem = errors.New("pointer not point to struct")
-	ErrNotValidTag  = errors.New("not valid tag")
-	ErrNotValidKey  = errors.New("not valid key")
-	ErrIgnore       = errors.New("ignore key")
-	ErrNeedTag      = errors.New("need struct2map tag")
+	ErrNotPtr     = errors.New("need a pointer")
+	ErrNeedStruct = errors.New("pointer not point to struct")
 )
+
+type ErrTypeNotMatch struct {
+	FieldName string
+	WantType  string
+	GotType   string
+}
+
+func (e *ErrTypeNotMatch) Error() string {
+	return fmt.Sprintf("type of field : %s doesn't matched, want : %s, got %s", e.FieldName, e.WantType, e.GotType)
+}
